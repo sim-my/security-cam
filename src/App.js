@@ -22,6 +22,8 @@ const App = () => {
 
   const modelRef = useRef(null);
 
+  const lastDetections = useRef([]);
+
   useEffect(() => {
     //initial function for making camera ready and setting up model
     const gettingReady = async () => {
@@ -104,6 +106,8 @@ const App = () => {
     // set record to false and stop the recorder
     record.current = false;
     recorder.current.stop();
+
+    lastDetections.current = [];
   };
 
   //Intruder Detection function
@@ -126,12 +130,27 @@ const App = () => {
     //if the prediction class returns person then intruder is present
 
     predictions.forEach((prediction) => {
-      if (prediction.class === "person") intruderDetected = true;
+      prediction.class === "person"
+        ? (intruderDetected = true)
+        : (intruderDetected = false);
     });
 
     //if intruder present start recording else stop
 
-    intruderDetected ? startRecording() : stopRecording();
+    if (intruderDetected) {
+      startRecording();
+      lastDetections.current.push(true);
+    } else if (lastDetections.current.filter(Boolean).length) {
+      startRecording();
+      lastDetections.current.push(false);
+    } else {
+      stopRecording();
+    }
+
+    lastDetections.current = lastDetections.current.slice(
+      Math.max(lastDetections.current.length - 10, 0)
+    );
+
 
     //call recursively this function for each frame in video
 
@@ -182,7 +201,7 @@ const App = () => {
                   <td>No record yet</td>
                 </tr>
               ) : (
-                records.map(record, (key) => {
+                records.map((record, key) => {
                   return (
                     <tr>
                       <td>{key + 1}</td>
