@@ -146,7 +146,6 @@ const App = () => {
     } else {
       stopRecording();
     }
-
     lastDetections.current = lastDetections.current.slice(
       Math.max(lastDetections.current.length - 10, 0)
     );
